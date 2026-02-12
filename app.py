@@ -27,7 +27,7 @@ Settings.embed_model = embed_model
 Settings.llm = llm
 
 # Load documents
-documents = SimpleDirectoryReader(input_dir="data").load_data()
+documents = SimpleDirectoryReader(input_dir="Data").load_data()
 
 index = VectorStoreIndex.from_documents(documents)
 retriever = index.as_retriever(similarity_top_k=8)
@@ -128,4 +128,5 @@ if prompt := st.chat_input("Ask your question..."):
 #what is the eligibility criteria?
 
 #What is the fee structure 
+
 
