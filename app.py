@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-from dotenv import load_dotenv
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
 from llama_index.llms.groq import Groq
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -129,3 +128,4 @@ if prompt := st.chat_input("Ask your question..."):
 #what is the eligibility criteria?
 
 #What is the fee structure 
+
