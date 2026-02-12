@@ -1,9 +1,6 @@
-streamlit==1.32.0
-llama-index==0.10.43
-llama-index-embeddings-huggingface==0.1.11
-llama-index-vector-stores-chroma==0.1.6
-chromadb==0.4.24
-sentence-transformers==2.6.1
-groq==0.4.2
-python-dotenv==1.0.1
-
+streamlit
+llama-index
+llama-index-embeddings-huggingface
+sentence-transformers
+groq
+python-dotenv
