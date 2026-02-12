@@ -5,9 +5,9 @@ from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
 from llama_index.llms.groq import Groq
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-# Load API key
-load_dotenv()
-groq_api_key = os.getenv("GROQ_API_KEY")
+import os
+groq_api_key= os.getenv("groq_api_key")
+
 
 if not groq_api_key:
     st.error("GROQ_API_KEY not found.")
@@ -127,4 +127,5 @@ if prompt := st.chat_input("Ask your question..."):
     )
 
 #what is the eligibility criteria?
+
 #What is the fee structure 
