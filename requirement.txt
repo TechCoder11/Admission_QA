@@ -5,4 +5,5 @@ llama-index-vector-stores-chroma==0.1.6
 chromadb==0.4.24
 sentence-transformers==2.6.1
 groq==0.4.2
-python-dotenv
+python-dotenv==1.0.1
+
