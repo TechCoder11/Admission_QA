@@ -56,7 +56,26 @@ def detect_greeting(text):
 
     return None
 
+def mentions_other_institution(query):
+    query = query.strip()
+
+    # If user explicitly mentions SVERI → allow
+    if "sveri" in query.lower():
+        return False
+
+    # Detect capitalized words (possible institution names)
+    words = query.split()
+    for word in words:
+        if word.isupper() and len(word) > 2:
+            return True
+
+    return False
+
 def admission_assistant(user_query):
+
+    # ---- Block Other Institutions ----
+    if mentions_other_institution(user_query):
+        return "I provide information only about SVERI college."
 
     query_lower = user_query.lower().strip()
 
@@ -73,7 +92,7 @@ def admission_assistant(user_query):
             [f'{msg["role"]}: {msg["content"]}' for msg in last_messages]
         )
 
-    # ---- Retrieve Relevant Chunks FIRST (Smart Domain Check) ----
+    # ---- Retrieve Relevant Chunks ----
     retrieved_nodes = retriever.retrieve(user_query)
 
     # ---- Follow-up Detection ----
@@ -84,22 +103,21 @@ def admission_assistant(user_query):
         return "Please ask questions related to SVERI college only."
 
     # ---- If Follow-up but Nothing Retrieved ----
-    # Use conversation memory to guide answer
     if not retrieved_nodes and followup:
         refined_context = conversation_memory
-        
+
     else:
-    # ---- Re-ranking Top 3 ----
+        # ---- Re-ranking Top 3 ----
         top_3_nodes = sorted(
             retrieved_nodes,
             key=lambda x: x.score if x.score else 0,
             reverse=True
         )[:3]
-    
+
         # ---- Metadata Validation (SVERI Only) ----
         if not all(node.node.metadata.get("college") == "SVERI" for node in top_3_nodes):
             return "I provide information only about SVERI college."
-    
+
         refined_context = "\n\n".join(
             [node.node.text for node in top_3_nodes]
         )
@@ -198,6 +216,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
