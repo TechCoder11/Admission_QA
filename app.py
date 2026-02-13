@@ -219,6 +219,7 @@ with st.sidebar:
 This assistant helps you with questions about SVERI admissions.
 
 You can ask about:
+
 • Eligibility criteria  
 • Fee structure  
 • Required documents  
@@ -259,4 +260,5 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
