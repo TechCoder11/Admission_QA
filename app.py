@@ -1,5 +1,4 @@
 import streamlit as st
-import os
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
 from llama_index.llms.groq import Groq
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -56,26 +55,35 @@ def detect_greeting(text):
 
     return None
 
-def mentions_other_institution(query):
-    query = query.strip()
+def is_other_college(query):
+    query = query.lower()
 
-    # If user explicitly mentions SVERI → allow
-    if "sveri" in query.lower():
+    # Known words that indicate another college
+    other_college_patterns = [
+        r"\brit\b",
+        r"\bmit\b",
+        r"\biit\b",
+        r"\bait\b",
+        r"\buniversity\b"
+    ]
+
+    # If SVERI is mentioned → allow
+    if "sveri" in query:
         return False
 
-    # Detect capitalized words (possible institution names)
-    words = query.split()
-    for word in words:
-        if word.isupper() and len(word) > 2:
+    # If another known college keyword is mentioned → block
+    for pattern in other_college_patterns:
+        if re.search(pattern, query):
             return True
 
     return False
+    
+# ---- Strict College Validation ----
+if is_other_college(query_lower):
+    return "I provide information only about SVERI college admissions."
+
 
 def admission_assistant(user_query):
-
-    # ---- Block Other Institutions ----
-    if mentions_other_institution(user_query):
-        return "I provide information only about SVERI college."
 
     query_lower = user_query.lower().strip()
 
@@ -216,6 +224,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
