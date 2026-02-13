@@ -62,55 +62,83 @@ def admission_assistant(user_query):
 
     query_lower = user_query.lower().strip()
 
+    # ---- Greeting Detection ----
     greeting_response = detect_greeting(user_query)
     if greeting_response:
         return greeting_response
 
-    # ---- Domain Filtering ----
-    if not any(keyword in query_lower for keyword in ADMISSION_KEYWORDS):
-        return "Please ask queries related to college admissions only."
+    # ---- Conversation Memory (Last 5 Messages) ----
+    conversation_memory = ""
+    if "messages" in st.session_state:
+        last_messages = st.session_state.messages[-5:]
+        conversation_memory = "\n".join(
+            [f'{msg["role"]}: {msg["content"]}' for msg in last_messages]
+        )
 
-    # ----  Retrieve Relevant Chunks ----
+    # ---- Retrieve Relevant Chunks FIRST (Smart Domain Check) ----
     retrieved_nodes = retriever.retrieve(user_query)
 
-    if not retrieved_nodes:
-        return "I could not find relevant information in the admission documents."
+    # ---- Follow-up Detection ----
+    followup = is_followup(query_lower)
 
-    # ---- Re-ranking Top 3 ----
-    top_3_nodes = sorted(
-        retrieved_nodes,
-        key=lambda x: x.score if x.score else 0,
-        reverse=True
-    )[:3]
+    # ---- If Nothing Retrieved AND Not Follow-up → Block ----
+    if not retrieved_nodes and not followup:
+        return "Please ask questions related to SVERI college only."
 
-    refined_context = "\n\n".join(
-        [node.node.text for node in top_3_nodes]
-    )
+    # ---- If Follow-up but Nothing Retrieved ----
+    # Use conversation memory to guide answer
+    if not retrieved_nodes and followup:
+        refined_context = conversation_memory
+    else:
+        # ---- Re-ranking Top 3 ----
+        top_3_nodes = sorted(
+            retrieved_nodes,
+            key=lambda x: x.score if x.score else 0,
+            reverse=True
+        )[:3]
+
+        refined_context = "\n\n".join(
+            [node.node.text for node in top_3_nodes]
+        )
 
     # ---- Strict Prompt ----
     prompt = f"""
-    You are an official Admission Assistant.
+    You are the official AI Assistant of SVERI College.
 
     STRICT RULES:
     - Answer ONLY using the provided context.
-    - If answer is not in context, say:
+    - Use previous conversation if needed.
+    - If answer is not present in context, say:
       "The information is not available in the provided documents."
     - Do NOT provide general knowledge.
-    - Keep answer concise in bullet points.
+    - Keep answers clear and concise in bullet points.
+
+    Previous Conversation:
+    {conversation_memory}
 
     Context:
     {refined_context}
 
-    Question:
+    Current Question:
     {user_query}
     """
 
     response = llm.complete(prompt)
     return response.text
 
+FOLLOWUP_KEYWORDS = [
+    "tell me more", "more about", "explain more",
+    "details", "elaborate", "continue", "what about it",
+    "its details", "more info"
+]
+
+def is_followup(query):
+    return any(keyword in query for keyword in FOLLOWUP_KEYWORDS)
+
 # Streamlit UI
 st.set_page_config(page_title="Admission Assistant")
 st.title("🎓 SVERI Q&A Assistant")
+
 # SIDEBAR
 with st.sidebar:
     st.header("🎓 Admission Help Desk")
@@ -167,6 +195,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
