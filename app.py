@@ -90,19 +90,19 @@ def admission_assistant(user_query):
         
     else:
     # ---- Re-ranking Top 3 ----
-    top_3_nodes = sorted(
-        retrieved_nodes,
-        key=lambda x: x.score if x.score else 0,
-        reverse=True
-    )[:3]
-
-    # ---- Metadata Validation (SVERI Only) ----
-    if not all(node.node.metadata.get("college") == "SVERI" for node in top_3_nodes):
-        return "I provide information only about SVERI college."
-
-    refined_context = "\n\n".join(
-        [node.node.text for node in top_3_nodes]
-    )
+        top_3_nodes = sorted(
+            retrieved_nodes,
+            key=lambda x: x.score if x.score else 0,
+            reverse=True
+        )[:3]
+    
+        # ---- Metadata Validation (SVERI Only) ----
+        if not all(node.node.metadata.get("college") == "SVERI" for node in top_3_nodes):
+            return "I provide information only about SVERI college."
+    
+        refined_context = "\n\n".join(
+            [node.node.text for node in top_3_nodes]
+        )
 
     # ---- Strict Prompt ----
     prompt = f"""
@@ -198,6 +198,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
