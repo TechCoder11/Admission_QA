@@ -106,7 +106,18 @@ def is_identity_query(query):
 
 def admission_assistant(user_query):
     
+# Explicitly block other institution names
+blocked_institutions = [
+    "mit", "iit", "nit", "harvard", "vnit",
+    "coep", "stanford", "oxford", "cambridge",
+    "rit","wit","wce","ICT","VJTI", "PICT","SPIT", "VIT" ,
+    "D.J. Sanghvi College of Engineering","MIT-WPU","Cummins College of Engineering for Women"
+]
 
+query_lower = user_query.lower()
+
+if any(name in query_lower for name in blocked_institutions):
+    return "I provide information only about SVERI college."
     query_lower = user_query.lower().strip()
 
       # ---- Greeting ----
@@ -155,16 +166,17 @@ def admission_assistant(user_query):
         )
 
     # ---- Prompt ----
-    prompt = f"""
-    You are the official AI Assistant of SVERI College.
+ prompt = f"""
+You are the official AI Assistant of SVERI College.
 
-    STRICT RULES:
-    - Answer ONLY using the provided context.
-    - Use previous conversation if needed.
-    - If answer is not present in context, say:
-      "The information is not available in the provided documents."
-    - Do NOT provide general knowledge.
-    - Keep answers concise in bullet points.
+
+STRICT RULES:
+- Answer ONLY using the retrieved context.
+- Do NOT use outside knowledge.
+- Do NOT guess.
+- If answer is not present in the context, say exactly:
+  "The requested information is not available in official SVERI documents."
+
 
     Previous Conversation:
     {conversation_memory}
@@ -174,6 +186,8 @@ def admission_assistant(user_query):
 
     Current Question:
     {user_query}
+
+    Answer in bullet points:
     """
 
     response = llm.complete(prompt)
@@ -239,6 +253,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
