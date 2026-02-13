@@ -115,7 +115,15 @@ def admission_assistant(user_query):
 
     # ---- Block Other Institutions (Smart Blocking) ----
     if "sveri" not in query_lower:
-        other_college_pattern = r"\b(iit|nit|mit|rit|vnit|coep|vjti|pict|vit|harvard|stanford|oxford|cambridge)\b"
+        other_college_pattern = r"""\b(
+        iit|nit|vnit|mit|mitwpu|rit|coep|vjti|pict|vit|spit|dj\s*sanghvi|
+        wce|walchand|ict|iiit|iiitm|gcoea|gcoe|pccoe|cummins|
+        bharati\s*vidyapeeth|sinhgad|modern\s*college|
+        dy\s*patil|ramrao\s*adik|nmims|symbiosis|
+        sandip|kjsieit|thadomal|atharva|
+        gh\s*raisoni|prmitr|pvg|aissms|
+        harvard|stanford|oxford|cambridge
+        )\b"""
         if re.search(other_college_pattern, query_lower):
             return "I provide information only about SVERI college."
 
