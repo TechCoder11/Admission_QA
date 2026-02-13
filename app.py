@@ -3,7 +3,7 @@ import os
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
 from llama_index.llms.groq import Groq
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-
+import re
 import os
 groq_api_key= os.getenv("groq_api_key")
 
@@ -32,8 +32,33 @@ documents = SimpleDirectoryReader(input_dir="Data").load_data()
 index = VectorStoreIndex.from_documents(documents)
 retriever = index.as_retriever(similarity_top_k=8)
 
+
+def is_greeting(text):
+    text = text.lower().strip()
+
+    # Remove repeated letters (hiiii -> hii)
+    text = re.sub(r'(.)\1{2,}', r'\1\1', text)
+
+    greeting_patterns = [
+        r"\bhi\b",
+        r"\bhii+\b",
+        r"\bhello+\b",
+        r"\bhey+\b",
+        r"\bgood (morning|afternoon|evening)\b",
+        r"\bhow are you\b"
+    ]
+
+    return any(re.search(pattern, text) for pattern in greeting_patterns)
+
 # Query function
 def admission_assistant(user_query):
+
+    if is_greeting(user_query):
+        return "Hello 👋 How can I assist you with admissions today?"
+
+    if len(user_query.strip().lower().split()) <= 2:
+        return "Please ask a specific question related to admissions (e.g., eligibility, fees, documents)."
+
     retrieved_nodes = retriever.retrieve(user_query)
 
     if not retrieved_nodes:
@@ -128,5 +153,6 @@ if prompt := st.chat_input("Ask your question..."):
 #what is the eligibility criteria?
 
 #What is the fee structure 
+
 
 
