@@ -65,21 +65,6 @@ def is_followup(query):
     return any(keyword in query for keyword in FOLLOWUP_KEYWORDS)
 
 
-def mentions_other_institution(query):
-    query_lower = query.lower()
-
-    # Allow if SVERI mentioned
-    if "sveri" in query_lower:
-        return False
-
-    # Block only if clearly referring to another institution
-    institution_words = ["college", "university", "institute"]
-
-    if any(word in query_lower for word in institution_words):
-        return True
-
-    return False
-    
 def detect_closing(text):
     text = text.lower().strip()
 
@@ -104,9 +89,23 @@ def detect_closing(text):
 
     return None
 
+def is_identity_query(query):
+    query = query.lower().strip()
+
+    identity_phrases = [
+        "which college is this",
+        "what is the college name",
+        "what college is this",
+        "which university is this",
+        "what institute is this",
+        "where am i"
+    ]
+
+    return any(phrase in query for phrase in identity_phrases)
 # -------------------- MAIN ASSISTANT FUNCTION --------------------
 
 def admission_assistant(user_query):
+    
 
     query_lower = user_query.lower().strip()
 
@@ -119,11 +118,7 @@ def admission_assistant(user_query):
     closing = detect_closing(user_query)
     if closing:
         return closing
-
-    # ---- Block other colleges ----
-    if mentions_other_institution(user_query):
-        return "I provide information only about SVERI college."
-
+        
     # ---- Conversation Memory ----
     conversation_memory = ""
     if "messages" in st.session_state:
@@ -244,6 +239,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
