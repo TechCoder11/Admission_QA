@@ -32,38 +32,51 @@ documents = SimpleDirectoryReader(input_dir="Data").load_data()
 index = VectorStoreIndex.from_documents(documents)
 retriever = index.as_retriever(similarity_top_k=8)
 
-
-def is_greeting(text):
+def detect_greeting(text):
     text = text.lower().strip()
 
-    # Remove repeated letters (hiiii -> hii)
+    # Normalize repeated letters (hiiii → hii)
     text = re.sub(r'(.)\1{2,}', r'\1\1', text)
 
-    greeting_patterns = [
-        r"\bhi\b",
-        r"\bhii+\b",
-        r"\bhello+\b",
-        r"\bhey+\b",
-        r"\bgood (morning|afternoon|evening)\b",
-        r"\bhow are you\b"
-    ]
+    if re.search(r"\bgood morning\b", text):
+        return "Good Morning ☀ How can I assist you with admissions today?"
 
-    return any(re.search(pattern, text) for pattern in greeting_patterns)
+    if re.search(r"\bgood afternoon\b", text):
+        return "Good Afternoon 🌤 How can I assist you with admissions today?"
 
-# Query function
-def admission_assistant(user_query):
+    if re.search(r"\bgood evening\b", text):
+        return "Good Evening 🌙 How can I assist you with admissions today?"
 
-    if is_greeting(user_query):
+    if re.search(r"\b(hi+|hello+|hey+)\b", text):
         return "Hello 👋 How can I assist you with admissions today?"
 
-    if len(user_query.strip().lower().split()) <= 2:
-        return "Please ask a specific question related to admissions (e.g., eligibility, fees, documents)."
+    return None
 
+ADMISSION_KEYWORDS = [
+    "admission", "eligibility", "fees", "fee", "documents",
+    "process", "criteria", "cutoff", "program", "course",
+    "intake", "application", "scholarship"
+]
+
+def admission_assistant(user_query):
+
+    query_lower = user_query.lower().strip()
+
+    greeting_response = detect_greeting(user_query)
+    if greeting_response:
+        return greeting_response
+
+    # ---- Domain Filtering ----
+    if not any(keyword in query_lower for keyword in ADMISSION_KEYWORDS):
+        return "Please ask queries related to college admissions only."
+
+    # ----  Retrieve Relevant Chunks ----
     retrieved_nodes = retriever.retrieve(user_query)
 
     if not retrieved_nodes:
-        return "No relevant information found."
+        return "I could not find relevant information in the admission documents."
 
+    # ---- Re-ranking Top 3 ----
     top_3_nodes = sorted(
         retrieved_nodes,
         key=lambda x: x.score if x.score else 0,
@@ -74,17 +87,22 @@ def admission_assistant(user_query):
         [node.node.text for node in top_3_nodes]
     )
 
+    # ---- Strict Prompt ----
     prompt = f"""
     You are an official Admission Assistant.
-    Use only this context.
+
+    STRICT RULES:
+    - Answer ONLY using the provided context.
+    - If answer is not in context, say:
+      "The information is not available in the provided documents."
+    - Do NOT provide general knowledge.
+    - Keep answer concise in bullet points.
 
     Context:
     {refined_context}
 
     Question:
     {user_query}
-
-    Answer in bullet points.
     """
 
     response = llm.complete(prompt)
@@ -150,9 +168,6 @@ if prompt := st.chat_input("Ask your question..."):
         {"role": "assistant", "content": response}
     )
 
-#what is the eligibility criteria?
-
-#What is the fee structure 
 
 
 
