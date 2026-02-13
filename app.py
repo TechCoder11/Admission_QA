@@ -29,6 +29,12 @@ Settings.llm = llm
 # Load documents
 documents = SimpleDirectoryReader(input_dir="Data").load_data()
 
+for doc in documents:
+    doc.metadata = {"college": "SVERI"}
+    
+    if not all(node.node.metadata.get("college") == "SVERI" for node in top_3_nodes):
+    return "I provide information only about SVERI college."
+
 index = VectorStoreIndex.from_documents(documents)
 retriever = index.as_retriever(similarity_top_k=8)
 
@@ -195,6 +201,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
