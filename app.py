@@ -202,8 +202,11 @@ Current Question:
 Answer in bullet points:
 """
 
-    response = llm.complete(prompt)
-    return response.text
+   response = llm.complete(prompt)
+
+    formatted_response = response.text.replace("•", "\n- ")
+    return formatted_response
+
 
 
 # -------------------- STREAMLIT UI --------------------
@@ -257,3 +260,4 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
