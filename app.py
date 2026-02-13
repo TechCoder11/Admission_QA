@@ -56,12 +56,6 @@ def detect_greeting(text):
 
     return None
 
-ADMISSION_KEYWORDS = [
-    "admission", "eligibility", "fees", "fee", "documents",
-    "process", "criteria", "cutoff", "program", "course",
-    "intake", "application", "scholarship"
-]
-
 def admission_assistant(user_query):
 
     query_lower = user_query.lower().strip()
@@ -204,6 +198,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
