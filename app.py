@@ -203,10 +203,8 @@ Answer in bullet points:
 """
 
     response = llm.complete(prompt)
-
     formatted_response = response.text.replace("•", "\n- ")
     return formatted_response
-
 
 
 # -------------------- STREAMLIT UI --------------------
@@ -236,7 +234,7 @@ You can ask about:
 
     st.caption("AI-powered Admission Q&A Assistant")
 
-# Initialize chat
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -260,7 +258,3 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
-
-
-
-
