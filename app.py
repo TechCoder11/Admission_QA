@@ -184,14 +184,73 @@ def admission_assistant(user_query):
     response = llm.complete(prompt)
     return response.text
 
-# -------------------- STREAMLIT UI --------------------
-
+# Streamlit UI
 st.set_page_config(page_title="Admission Assistant")
 st.title("🎓 SVERI Q&A Assistant")
 
+# SIDEBAR
 with st.sidebar:
     st.header("🎓 Admission Help Desk")
+
     st.write("""
-    Ask questions about:
-    • Admissions  
-    • Cours
+    This assistant helps you with questions about college admissions.
+
+    You can ask about:
+             
+    • Eligibility criteria  
+    • Fee structure  
+    • Required documents  
+    • Admission process  
+    • Available programs  
+
+    Simply type your question in the chat box.
+    """)
+
+    st.markdown("---")
+
+    if st.button("🔄 Clear Chat"):
+        st.session_state.messages = []
+        st.rerun()
+
+    st.caption("AI-powered Admission Q&A Assistant")
+        
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display previous messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Chat input
+if prompt := st.chat_input("Ask your question..."):
+
+    # Display user message immediately
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Save user message
+    st.session_state.messages.append(
+        {"role": "user", "content": prompt}
+    )
+
+    # Generate assistant response
+    with st.chat_message("assistant"):
+        response = admission_assistant(prompt)
+        st.markdown(response)
+
+    # Save assistant message
+    st.session_state.messages.append(
+        {"role": "assistant", "content": response}
+    )
+
+
+
+
+
+
+
+
+
+
