@@ -228,6 +228,7 @@ You can ask about:
 
     st.markdown("---")
 
+    if "messages" in st.session_state and len(st.session_state.messages) > 0:
     if st.button("🔄 Clear Chat"):
         st.session_state.messages = []
         st.rerun()
@@ -258,3 +259,4 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
