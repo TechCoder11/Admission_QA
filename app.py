@@ -61,6 +61,7 @@ FOLLOWUP_KEYWORDS = [
     "its details", "more info"
 ]
 
+
 def is_followup(query):
     return any(keyword in query for keyword in FOLLOWUP_KEYWORDS)
 
@@ -89,6 +90,7 @@ def detect_closing(text):
 
     return None
 
+
 def is_identity_query(query):
     query = query.lower().strip()
 
@@ -102,25 +104,28 @@ def is_identity_query(query):
     ]
 
     return any(phrase in query for phrase in identity_phrases)
+
+
 # -------------------- MAIN ASSISTANT FUNCTION --------------------
 
 def admission_assistant(user_query):
-    
-# Explicitly block other institution names
+
+    # Explicitly block other institution names
     blocked_institutions = [
-    "mit", "iit", "nit", "harvard", "vnit",
-    "coep", "stanford", "oxford", "cambridge",
-    "rit","wit","wce","ICT","VJTI", "PICT","SPIT", "VIT" ,
-    "D.J. Sanghvi College of Engineering","MIT-WPU","Cummins College of Engineering for Women"
+        "mit", "iit", "nit", "harvard", "vnit",
+        "coep", "stanford", "oxford", "cambridge",
+        "rit", "wit", "wce", "ICT", "VJTI", "PICT", "SPIT", "VIT",
+        "D.J. Sanghvi College of Engineering", "MIT-WPU", "Cummins College of Engineering for Women"
     ]
 
-query_lower = user_query.lower()
+    query_lower = user_query.lower()
 
-if any(name in query_lower for name in blocked_institutions):
-    return "I provide information only about SVERI college."
+    if any(name in query_lower for name in blocked_institutions):
+        return "I provide information only about SVERI college."
+
     query_lower = user_query.lower().strip()
 
-      # ---- Greeting ----
+    # ---- Greeting ----
     greeting = detect_greeting(user_query)
     if greeting:
         return greeting
@@ -129,7 +134,7 @@ if any(name in query_lower for name in blocked_institutions):
     closing = detect_closing(user_query)
     if closing:
         return closing
-        
+
     # ---- Conversation Memory ----
     conversation_memory = ""
     if "messages" in st.session_state:
@@ -166,9 +171,8 @@ if any(name in query_lower for name in blocked_institutions):
         )
 
     # ---- Prompt ----
- prompt = f"""
+    prompt = f"""
 You are the official AI Assistant of SVERI College.
-
 
 STRICT RULES:
 - Answer ONLY using the retrieved context.
@@ -177,21 +181,21 @@ STRICT RULES:
 - If answer is not present in the context, say exactly:
   "The requested information is not available in official SVERI documents."
 
+Previous Conversation:
+{conversation_memory}
 
-    Previous Conversation:
-    {conversation_memory}
+Context:
+{refined_context}
 
-    Context:
-    {refined_context}
+Current Question:
+{user_query}
 
-    Current Question:
-    {user_query}
-
-    Answer in bullet points:
-    """
+Answer in bullet points:
+"""
 
     response = llm.complete(prompt)
     return response.text
+
 
 # Streamlit UI
 st.set_page_config(page_title="Admission Assistant")
@@ -205,7 +209,7 @@ with st.sidebar:
     This assistant helps you with questions about college admissions.
 
     You can ask about:
-             
+
     • Eligibility criteria  
     • Fee structure  
     • Required documents  
@@ -222,7 +226,8 @@ with st.sidebar:
         st.rerun()
 
     st.caption("AI-powered Admission Q&A Assistant")
-        
+
+
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -253,16 +258,3 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
