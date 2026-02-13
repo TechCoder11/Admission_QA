@@ -105,6 +105,20 @@ def is_identity_query(query):
 
     return any(phrase in query for phrase in identity_phrases)
 
+# COLLEGE IDENTITY HANDLER
+if is_identity_query(user_query):
+    return """
+🎓 This assistant provides information for:
+
+**SVERI College**
+
+You can ask about:
+• Admission process
+• Eligibility criteria
+• Fee structure
+• Available programs
+"""
+
 
 # -------------------- MAIN ASSISTANT FUNCTION --------------------
 
@@ -258,3 +272,4 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
