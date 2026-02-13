@@ -30,7 +30,6 @@ Settings.llm = llm
 
 documents = SimpleDirectoryReader(input_dir="Data").load_data()
 
-# Add metadata
 for doc in documents:
     doc.metadata = {"college": "SVERI"}
 
@@ -44,26 +43,15 @@ def detect_greeting(text):
     text = re.sub(r'(.)\1{2,}', r'\1\1', text)
 
     if "good morning" in text:
-        return "Good Morning ☀ How can I assist you with admissions today?"
+        return "Good Morning ☀ How can I assist you with SVERI admissions today?"
     if "good afternoon" in text:
-        return "Good Afternoon 🌤 How can I assist you with admissions today?"
+        return "Good Afternoon 🌤 How can I assist you with SVERI admissions today?"
     if "good evening" in text:
-        return "Good Evening 🌙 How can I assist you with admissions today?"
+        return "Good Evening 🌙 How can I assist you with SVERI admissions today?"
     if re.search(r"\b(hi+|hello+|hey+)\b", text):
-        return "Hello 👋 How can I assist you with admissions today?"
+        return "Hello 👋 How can I assist you with SVERI admissions today?"
 
     return None
-
-
-FOLLOWUP_KEYWORDS = [
-    "tell me more", "more about", "explain more",
-    "details", "elaborate", "continue", "what about it",
-    "its details", "more info"
-]
-
-
-def is_followup(query):
-    return any(keyword in query for keyword in FOLLOWUP_KEYWORDS)
 
 
 def detect_closing(text):
@@ -79,7 +67,7 @@ def detect_closing(text):
 
     for phrase in closing_patterns:
         if phrase in text:
-            if "thank" in phrase or "thanks" in phrase:
+            if "thank" in phrase:
                 return "You're welcome 😊 I'm glad I could help. If you have more questions about SVERI, feel free to ask!"
             elif "bye" in phrase or "goodbye" in phrase or "see you" in phrase:
                 return "Goodbye 👋 Have a great day! If you need any information about SVERI admissions, I'm here to help."
@@ -91,6 +79,17 @@ def detect_closing(text):
     return None
 
 
+FOLLOWUP_KEYWORDS = [
+    "tell me more", "more about", "explain more",
+    "details", "elaborate", "continue",
+    "its details", "more info"
+]
+
+
+def is_followup(query):
+    return any(keyword in query for keyword in FOLLOWUP_KEYWORDS)
+
+
 def is_identity_query(query):
     query = query.lower().strip()
 
@@ -100,54 +99,46 @@ def is_identity_query(query):
         "what college is this",
         "which university is this",
         "what institute is this",
-        "where am i"
+        "where am i",
+        "where is sveri located",
+        "location of sveri"
     ]
 
     return any(phrase in query for phrase in identity_phrases)
-
-# COLLEGE IDENTITY HANDLER
-if is_identity_query(user_query):
-    return """
-🎓 This assistant provides information for:
-
-**SVERI College**
-
-You can ask about:
-• Admission process
-• Eligibility criteria
-• Fee structure
-• Available programs
-"""
 
 
 # -------------------- MAIN ASSISTANT FUNCTION --------------------
 
 def admission_assistant(user_query):
 
-    # Explicitly block other institution names
-    blocked_institutions = [
-        "mit", "iit", "nit", "harvard", "vnit",
-        "coep", "stanford", "oxford", "cambridge",
-        "rit", "wit", "wce", "ICT", "VJTI", "PICT", "SPIT", "VIT",
-        "D.J. Sanghvi College of Engineering", "MIT-WPU", "Cummins College of Engineering for Women"
-    ]
-
-    query_lower = user_query.lower()
-
-    if any(name in query_lower for name in blocked_institutions):
-        return "I provide information only about SVERI college."
-
     query_lower = user_query.lower().strip()
+
+    # ---- Block Other Institutions (Smart Blocking) ----
+    if "sveri" not in query_lower:
+        other_college_pattern = r"\b(iit|nit|mit|rit|vnit|coep|vjti|pict|vit|harvard|stanford|oxford|cambridge)\b"
+        if re.search(other_college_pattern, query_lower):
+            return "I provide information only about SVERI college."
 
     # ---- Greeting ----
     greeting = detect_greeting(user_query)
     if greeting:
         return greeting
 
-    # ---- Closing Detection ----
+    # ---- Closing ----
     closing = detect_closing(user_query)
     if closing:
         return closing
+
+    # ---- Identity Queries ----
+    if is_identity_query(query_lower):
+        return """🎓 This assistant provides information for:
+
+• College Name: SVERI College of Engineering  
+• Location: Pandharpur, Maharashtra  
+• Institute: Shri Vithal Education & Research Institute (SVERI)
+
+You can ask about admissions, eligibility, fees, and programs.
+"""
 
     # ---- Conversation Memory ----
     conversation_memory = ""
@@ -159,14 +150,11 @@ def admission_assistant(user_query):
 
     # ---- Retrieve ----
     retrieved_nodes = retriever.retrieve(user_query)
-
     followup = is_followup(query_lower)
 
-    # ---- If nothing retrieved ----
     if not retrieved_nodes and not followup:
-        return "Please ask questions related to SVERI college only."
+        return "Please ask questions related to SVERI admissions."
 
-    # ---- Handle followup without retrieval ----
     if not retrieved_nodes and followup:
         refined_context = conversation_memory
     else:
@@ -176,7 +164,6 @@ def admission_assistant(user_query):
             reverse=True
         )[:3]
 
-        # Metadata validation
         if not all(node.node.metadata.get("college") == "SVERI" for node in top_3_nodes):
             return "I provide information only about SVERI college."
 
@@ -211,27 +198,24 @@ Answer in bullet points:
     return response.text
 
 
-# Streamlit UI
+# -------------------- STREAMLIT UI --------------------
+
 st.set_page_config(page_title="Admission Assistant")
 st.title("🎓 SVERI Q&A Assistant")
 
-# SIDEBAR
 with st.sidebar:
     st.header("🎓 Admission Help Desk")
 
     st.write("""
-    This assistant helps you with questions about college admissions.
+This assistant helps you with questions about SVERI admissions.
 
-    You can ask about:
-
-    • Eligibility criteria  
-    • Fee structure  
-    • Required documents  
-    • Admission process  
-    • Available programs  
-
-    Simply type your question in the chat box.
-    """)
+You can ask about:
+• Eligibility criteria  
+• Fee structure  
+• Required documents  
+• Admission process  
+• Available programs  
+""")
 
     st.markdown("---")
 
@@ -241,35 +225,27 @@ with st.sidebar:
 
     st.caption("AI-powered Admission Q&A Assistant")
 
-
-# Initialize chat history
+# Initialize chat
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display previous messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Chat input
 if prompt := st.chat_input("Ask your question..."):
 
-    # Display user message immediately
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Save user message
     st.session_state.messages.append(
         {"role": "user", "content": prompt}
     )
 
-    # Generate assistant response
     with st.chat_message("assistant"):
         response = admission_assistant(prompt)
         st.markdown(response)
 
-    # Save assistant message
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
-
