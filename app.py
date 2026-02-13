@@ -107,12 +107,12 @@ def is_identity_query(query):
 def admission_assistant(user_query):
     
 # Explicitly block other institution names
-blocked_institutions = [
+    blocked_institutions = [
     "mit", "iit", "nit", "harvard", "vnit",
     "coep", "stanford", "oxford", "cambridge",
     "rit","wit","wce","ICT","VJTI", "PICT","SPIT", "VIT" ,
     "D.J. Sanghvi College of Engineering","MIT-WPU","Cummins College of Engineering for Women"
-]
+    ]
 
 query_lower = user_query.lower()
 
@@ -253,6 +253,7 @@ if prompt := st.chat_input("Ask your question..."):
     st.session_state.messages.append(
         {"role": "assistant", "content": response}
     )
+
 
 
 
